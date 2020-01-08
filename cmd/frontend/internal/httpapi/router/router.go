@@ -17,7 +17,8 @@ const (
 	RepoRefresh = "repo.refresh"
 	Telemetry   = "telemetry"
 
-	GitHubWebhooks = "github.webhooks"
+	GitHubWebhooks          = "github.webhooks"
+	BitbucketServerWebhooks = "bitbucket.webhooks"
 
 	SavedQueriesListAll    = "internal.saved-queries.list-all"
 	SavedQueriesGetInfo    = "internal.saved-queries.get-info"
@@ -59,6 +60,7 @@ func New(base *mux.Router) *mux.Router {
 	addRegistryRoute(base)
 	addGraphQLRoute(base)
 	base.Path("/github-webhooks").Methods("POST").Name(GitHubWebhooks)
+	base.Path("/bitbucket-server-webhooks").Methods("POST").Name(BitbucketServerWebhooks)
 	base.Path("/lsif/upload").Methods("POST").Name(LSIFUpload)
 	base.Path("/lsif/{rest:.*}").Methods("GET", "POST").Name(LSIF)
 

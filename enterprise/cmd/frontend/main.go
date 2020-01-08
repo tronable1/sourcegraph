@@ -63,13 +63,19 @@ func main() {
 		return time.Now().UTC().Truncate(time.Microsecond)
 	}
 
-	githubWebhook := &a8n.GitHubWebhook{
+	githubWebhook := &a8n.GitHubWebhook{&a8n.Webhook{
 		Store: a8n.NewStoreWithClock(dbconn.Global, clock),
 		Repos: repos.NewDBStore(dbconn.Global, sql.TxOptions{}),
 		Now:   clock,
-	}
+	}}
 
-	shared.Main(githubWebhook)
+	bitbucketServerWebhook := &a8n.BitbucketServerWebhook{&a8n.Webhook{
+		Store: a8n.NewStoreWithClock(dbconn.Global, clock),
+		Repos: repos.NewDBStore(dbconn.Global, sql.TxOptions{}),
+		Now:   clock,
+	}}
+
+	shared.Main(githubWebhook, bitbucketServerWebhook)
 }
 
 func initLicensing() {
