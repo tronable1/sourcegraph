@@ -13,6 +13,7 @@ import (
 	"github.com/sourcegraph/sourcegraph/cmd/repo-updater/repos"
 	"github.com/sourcegraph/sourcegraph/internal/a8n"
 	// "github.com/sourcegraph/sourcegraph/internal/extsvc/bitbucketserver"
+	bitbucket "github.com/sourcegraph/sourcegraph/internal/extsvc/bitbucketserver"
 	"github.com/sourcegraph/sourcegraph/internal/extsvc/github"
 	"github.com/sourcegraph/sourcegraph/schema"
 	"gopkg.in/inconshreveable/log15.v2"
@@ -22,6 +23,8 @@ type Webhook struct {
 	Store *Store
 	Repos repos.Store
 	Now   func() time.Time
+
+	Service string
 }
 
 func (h Webhook) upsertChangesetEvent(
@@ -38,7 +41,7 @@ func (h Webhook) upsertChangesetEvent(
 
 	cs, err := tx.GetChangeset(ctx, GetChangesetOpts{
 		ExternalID:          strconv.FormatInt(pr, 10),
-		ExternalServiceType: github.ServiceType,
+		ExternalServiceType: h.Service,
 	})
 	if err != nil {
 		if err == ErrNoResults {
@@ -84,6 +87,14 @@ type GitHubWebhook struct {
 
 type BitbucketServerWebhook struct {
 	*Webhook
+}
+
+func NewGithubWebhook(store *Store, repos repos.Store, now func() time.Time) *GitHubWebhook {
+	return &GitHubWebhook{&Webhook{store, repos, now, github.ServiceType}}
+}
+
+func NewBitbucketServerWebhook(store *Store, repos repos.Store, now func() time.Time) *BitbucketServerWebhook {
+	return &BitbucketServerWebhook{&Webhook{store, repos, now, bitbucket.ServiceType}}
 }
 
 // ServeHTTP implements the http.Handler interface.

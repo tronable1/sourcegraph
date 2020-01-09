@@ -63,17 +63,11 @@ func main() {
 		return time.Now().UTC().Truncate(time.Microsecond)
 	}
 
-	githubWebhook := &a8n.GitHubWebhook{&a8n.Webhook{
-		Store: a8n.NewStoreWithClock(dbconn.Global, clock),
-		Repos: repos.NewDBStore(dbconn.Global, sql.TxOptions{}),
-		Now:   clock,
-	}}
+	store := a8n.NewStoreWithClock(dbconn.Global, clock)
+	repositories := repos.NewDBStore(dbconn.Global, sql.TxOptions{})
 
-	bitbucketServerWebhook := &a8n.BitbucketServerWebhook{&a8n.Webhook{
-		Store: a8n.NewStoreWithClock(dbconn.Global, clock),
-		Repos: repos.NewDBStore(dbconn.Global, sql.TxOptions{}),
-		Now:   clock,
-	}}
+	githubWebhook := a8n.NewGithubWebhook(store, repositories, clock)
+	bitbucketServerWebhook := a8n.NewBitbucketServerWebhook(store, repositories, clock)
 
 	shared.Main(githubWebhook, bitbucketServerWebhook)
 }
