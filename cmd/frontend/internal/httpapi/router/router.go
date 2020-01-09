@@ -18,7 +18,7 @@ const (
 	Telemetry   = "telemetry"
 
 	GitHubWebhooks          = "github.webhooks"
-	BitbucketServerWebhooks = "bitbucket.webhooks"
+	BitbucketServerWebhooks = "bitbucketServer.webhooks"
 
 	SavedQueriesListAll    = "internal.saved-queries.list-all"
 	SavedQueriesGetInfo    = "internal.saved-queries.get-info"
