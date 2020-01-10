@@ -13,7 +13,7 @@ import (
 	"github.com/sourcegraph/sourcegraph/cmd/repo-updater/repos"
 	"github.com/sourcegraph/sourcegraph/internal/a8n"
 	// "github.com/sourcegraph/sourcegraph/internal/extsvc/bitbucketserver"
-	bitbucket "github.com/sourcegraph/sourcegraph/internal/extsvc/bitbucketserver"
+	"github.com/sourcegraph/sourcegraph/internal/extsvc/bitbucketserver"
 	"github.com/sourcegraph/sourcegraph/internal/extsvc/github"
 	"github.com/sourcegraph/sourcegraph/schema"
 	"gopkg.in/inconshreveable/log15.v2"
@@ -94,7 +94,7 @@ func NewGithubWebhook(store *Store, repos repos.Store, now func() time.Time) *Gi
 }
 
 func NewBitbucketServerWebhook(store *Store, repos repos.Store, now func() time.Time) *BitbucketServerWebhook {
-	return &BitbucketServerWebhook{&Webhook{store, repos, now, bitbucket.ServiceType}}
+	return &BitbucketServerWebhook{&Webhook{store, repos, now, bitbucketserver.ServiceType}}
 }
 
 // ServeHTTP implements the http.Handler interface.
