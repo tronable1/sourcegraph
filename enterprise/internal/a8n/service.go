@@ -211,7 +211,9 @@ func (s *Service) createChangesetJobsWithStore(ctx context.Context, store *Store
 
 // RunChangesetJobs will run all the changeset jobs for the supplied campaign.
 // It is idempotent and jobs that have already completed will not be rerun.
+/*
 func (s *Service) RunChangesetJobs(ctx context.Context, c *a8n.Campaign) error {
+	return errors.Errorf("Deprecated")
 	var err error
 	tr, ctx := trace.New(ctx, "Service.RunChangesetJobs", fmt.Sprintf("Campaign: %q", c.Name))
 	defer func() {
@@ -237,11 +239,16 @@ func (s *Service) RunChangesetJobs(ctx context.Context, c *a8n.Campaign) error {
 
 	return errs.ErrorOrNil()
 }
+*/
 
 // RunChangesetJob will run the given ChangesetJob for the given campaign. It
 // is idempotent and if the job has already been run it will not be rerun.
-func (s *Service) RunChangesetJob(
+func RunChangesetJob(
 	ctx context.Context,
+	clock func() time.Time,
+	store *Store,
+	gitClient GitserverClient,
+	cf *httpcli.Factory,
 	c *a8n.Campaign,
 	job *a8n.ChangesetJob,
 ) (err error) {
@@ -269,7 +276,7 @@ func (s *Service) RunChangesetJob(
 		if err != nil {
 			job.Error = err.Error()
 		}
-		job.FinishedAt = s.clock()
+		job.FinishedAt = clock()
 
 		if e := store.UpdateChangesetJob(ctx, job); e != nil {
 			if err == nil {
@@ -280,10 +287,10 @@ func (s *Service) RunChangesetJob(
 		}
 		changesetJobUpdated = true
 	}
-	defer runFinalUpdate(ctx, s.store)
+	defer runFinalUpdate(ctx, store)
 
 	// We start a transaction here so that we can grab a lock
-	tx, err := s.store.Transact(ctx)
+	tx, err := store.Transact(ctx)
 	if err != nil {
 		return err
 	}
@@ -298,14 +305,14 @@ func (s *Service) RunChangesetJob(
 		return errors.New("could not acquire lock")
 	}
 
-	job.StartedAt = s.clock()
+	job.StartedAt = clock()
 
-	campaignJob, err := s.store.GetCampaignJob(ctx, GetCampaignJobOpts{ID: job.CampaignJobID})
+	campaignJob, err := store.GetCampaignJob(ctx, GetCampaignJobOpts{ID: job.CampaignJobID})
 	if err != nil {
 		return err
 	}
 
-	reposStore := repos.NewDBStore(s.store.DB(), sql.TxOptions{})
+	reposStore := repos.NewDBStore(store.DB(), sql.TxOptions{})
 	rs, err := reposStore.ListRepos(ctx, repos.StoreListReposArgs{IDs: []uint32{uint32(campaignJob.RepoID)}})
 	if err != nil {
 		return err
@@ -321,7 +328,7 @@ func (s *Service) RunChangesetJob(
 	// it stable across retries and only set it the first time.
 	headRefName := fmt.Sprintf("sourcegraph/%s-%d", "campaign", c.CreatedAt.Unix())
 
-	_, err = s.git.CreateCommitFromPatch(ctx, protocol.CreateCommitFromPatchRequest{
+	_, err = gitClient.CreateCommitFromPatch(ctx, protocol.CreateCommitFromPatchRequest{
 		Repo:       api.RepoName(repo.Name),
 		BaseCommit: campaignJob.Rev,
 		// IMPORTANT: We add a trailing newline here, otherwise `git apply`
@@ -385,7 +392,7 @@ func (s *Service) RunChangesetJob(
 		return errors.Errorf("no external services found for repo %q", repo.Name)
 	}
 
-	src, err := repos.NewSource(externalService, s.cf)
+	src, err := repos.NewSource(externalService, cf)
 	if err != nil {
 		return err
 	}
