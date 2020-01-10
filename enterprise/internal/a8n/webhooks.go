@@ -89,7 +89,7 @@ type BitbucketServerWebhook struct {
 	*Webhook
 }
 
-func NewGithubWebhook(store *Store, repos repos.Store, now func() time.Time) *GitHubWebhook {
+func NewGitHubWebhook(store *Store, repos repos.Store, now func() time.Time) *GitHubWebhook {
 	return &GitHubWebhook{&Webhook{store, repos, now, github.ServiceType}}
 }
 

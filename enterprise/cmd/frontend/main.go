@@ -66,7 +66,7 @@ func main() {
 	store := a8n.NewStoreWithClock(dbconn.Global, clock)
 	repositories := repos.NewDBStore(dbconn.Global, sql.TxOptions{})
 
-	githubWebhook := a8n.NewGithubWebhook(store, repositories, clock)
+	githubWebhook := a8n.NewGitHubWebhook(store, repositories, clock)
 	bitbucketServerWebhook := a8n.NewBitbucketServerWebhook(store, repositories, clock)
 
 	shared.Main(githubWebhook, bitbucketServerWebhook)
