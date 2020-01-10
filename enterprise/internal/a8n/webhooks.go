@@ -75,7 +75,7 @@ func (h Webhook) upsertChangesetEvent(
 		event = existing
 	}
 
-	return h.Store.UpsertChangesetEvents(ctx, event)
+	return tx.UpsertChangesetEvents(ctx, event)
 }
 
 // GitHubWebhook receives GitHub organization webhook events that are
