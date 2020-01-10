@@ -443,6 +443,10 @@ func (h *BitbucketServerWebhook) parseEvent(r *http.Request) (interface{}, *http
 }
 
 func (h *BitbucketServerWebhook) convertEvent(theirs interface{}) (pr int64, ours interface{ Key() string }) {
+	switch e := theirs.(type) {
+	case *bbs.PullRequestEvent:
+	}
+
 	return
 }
 
